@@ -1,5 +1,7 @@
+import { getReceiverSocketId, io } from "../lib/socket.js";
 import user from "../modals/message.modal.js";
 import Message from "../modals/message.modal.js";
+import claudinary from "../lib/cloudinary.js";
 
 export const getUsersForSidebar = async (req, res) => {
   //we  only want other users not me in sidebar
@@ -58,7 +60,11 @@ export const sendMessage = async (req, res) => {
 
     await newMessage.save();
 
-    //todo : realtime functionality : => socket.io
+    const receiverSocketId = getReceiverSocketId(receiverId);
+    if (receiverSocketId) {
+      //only sending message to receiver
+      io.to(receiverSocketId).emit("new message", newMessage);
+    }
 
     res.status(201).json(newMessage);
   } catch (error) {
